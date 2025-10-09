@@ -1,9 +1,12 @@
 use {
-    super::proto::FeatureSet as ProtoFeatureSet,
+    protosol::protos::FeatureSet as ProtoFeatureSetInner,
     agave_feature_set::{FeatureSet, FEATURE_NAMES},
     solana_pubkey::Pubkey,
     std::{collections::HashMap, sync::LazyLock},
 };
+
+// Wrapper type to work around orphan rules
+pub struct ProtoFeatureSet(pub ProtoFeatureSetInner);
 
 const fn feature_u64(feature: &Pubkey) -> u64 {
     let feature_id = feature.to_bytes();
@@ -27,7 +30,7 @@ static INDEXED_FEATURES: LazyLock<HashMap<u64, Pubkey>> = LazyLock::new(|| {
 impl From<&ProtoFeatureSet> for FeatureSet {
     fn from(value: &ProtoFeatureSet) -> Self {
         let mut feature_set = FeatureSet::default();
-        for id in &value.features {
+        for id in &value.0.features {
             if let Some(pubkey) = INDEXED_FEATURES.get(id) {
                 feature_set.activate(pubkey, 0);
             }

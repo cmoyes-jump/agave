@@ -1,8 +1,13 @@
 //! Instruction effects (output).
 use {
-    super::proto::InstrEffects as ProtoInstrEffects, solana_account::Account,
-    solana_instruction_error::InstructionError, solana_pubkey::Pubkey,
+    protosol::protos::InstrEffects as ProtoInstrEffectsInner,
+    solana_account::Account,
+    solana_instruction_error::InstructionError,
+    solana_pubkey::Pubkey,
 };
+
+// Wrapper type to work around orphan rules
+pub struct ProtoInstrEffects(pub ProtoInstrEffectsInner);
 
 /// Represents the effects of a single instruction.
 pub struct InstrEffects {
@@ -24,13 +29,13 @@ impl From<InstrEffects> for ProtoInstrEffects {
             ..
         } = value;
 
-        Self {
+        Self(ProtoInstrEffectsInner {
             result: result.as_ref().map(instr_err_to_num).unwrap_or_default(),
             custom_err: custom_err.unwrap_or_default(),
-            modified_accounts: modified_accounts.into_iter().map(Into::into).collect(),
+            modified_accounts: modified_accounts.into_iter().map(|(pubkey, account)| super::account_state::ProtoAccount::from((pubkey, account)).0).collect(),
             cu_avail,
             return_data,
-        }
+        })
     }
 }
 

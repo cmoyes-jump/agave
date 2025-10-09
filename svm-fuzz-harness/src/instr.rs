@@ -7,9 +7,8 @@
 
 use {
     crate::fixture::{
-        instr_context::InstrContext,
-        instr_effects::InstrEffects,
-        proto::{InstrContext as ProtoInstrContext, InstrEffects as ProtoInstrEffects},
+        instr_context::{InstrContext, ProtoInstrContext},
+        instr_effects::{InstrEffects, ProtoInstrEffects},
     },
     agave_precompiles::{get_precompile, is_precompile},
     solana_account::AccountSharedData,
@@ -311,7 +310,8 @@ pub fn execute_instr_proto(input: ProtoInstrContext) -> Option<ProtoInstrEffects
 mod tests {
     use {
         super::*,
-        crate::fixture::proto::{AcctState as ProtoAcctState, InstrAcct as ProtoInstrAcct},
+        crate::fixture::account_state::ProtoAccount as ProtoAcctState,
+        protosol::protos::InstrAcct as ProtoInstrAcct,
         solana_sysvar_id::SysvarId,
     };
 
@@ -332,10 +332,10 @@ mod tests {
         let rent_data = bincode::serialize(&rent).unwrap();
 
         // Ensure that a basic account transfer works
-        let input = ProtoInstrContext {
+        let input = ProtoInstrContext(protosol::protos::InstrContext {
             program_id: vec![0u8; 32],
             accounts: vec![
-                ProtoAcctState {
+                protosol::protos::AcctState {
                     address: vec![1u8; 32],
                     owner: vec![0u8; 32],
                     lamports: 1000,
@@ -343,7 +343,7 @@ mod tests {
                     executable: false,
                     seed_addr: None,
                 },
-                ProtoAcctState {
+                protosol::protos::AcctState {
                     address: vec![2u8; 32],
                     owner: vec![0u8; 32],
                     lamports: 0,
@@ -351,7 +351,7 @@ mod tests {
                     executable: false,
                     seed_addr: None,
                 },
-                ProtoAcctState {
+                protosol::protos::AcctState {
                     address: vec![0u8; 32],
                     owner: native_loader_id.clone(),
                     lamports: 10000000,
@@ -359,7 +359,7 @@ mod tests {
                     executable: true,
                     seed_addr: None,
                 },
-                ProtoAcctState {
+                protosol::protos::AcctState {
                     address: solana_clock::Clock::id().to_bytes().to_vec(),
                     owner: sysvar_id.clone(),
                     lamports: 1,
@@ -367,7 +367,7 @@ mod tests {
                     executable: false,
                     seed_addr: None,
                 },
-                ProtoAcctState {
+                protosol::protos::AcctState {
                     address: solana_rent::Rent::id().to_bytes().to_vec(),
                     owner: sysvar_id.clone(),
                     lamports: 1,
@@ -396,15 +396,15 @@ mod tests {
             cu_avail: 10000u64,
             epoch_context: None,
             slot_context: None,
-        };
+        });
         let output = execute_instr_proto(input.clone());
         assert_eq!(
             output,
-            Some(ProtoInstrEffects {
+            Some(ProtoInstrEffects(protosol::protos::InstrEffects {
                 result: 0,
                 custom_err: 0,
                 modified_accounts: vec![
-                    ProtoAcctState {
+                    protosol::protos::AcctState {
                         address: vec![1u8; 32],
                         owner: vec![0u8; 32],
                         lamports: 999,
@@ -412,7 +412,7 @@ mod tests {
                         executable: false,
                         seed_addr: None,
                     },
-                    ProtoAcctState {
+                    protosol::protos::AcctState {
                         address: vec![2u8; 32],
                         owner: vec![0u8; 32],
                         lamports: 1,
@@ -420,7 +420,7 @@ mod tests {
                         executable: false,
                         seed_addr: None,
                     },
-                    ProtoAcctState {
+                    protosol::protos::AcctState {
                         address: vec![0u8; 32],
                         owner: native_loader_id.clone(),
                         lamports: 10000000,
@@ -428,7 +428,7 @@ mod tests {
                         executable: true,
                         seed_addr: None,
                     },
-                    ProtoAcctState {
+                    protosol::protos::AcctState {
                         address: solana_clock::Clock::id().to_bytes().to_vec(),
                         owner: sysvar_id.clone(),
                         lamports: 1,
@@ -436,7 +436,7 @@ mod tests {
                         executable: false,
                         seed_addr: None,
                     },
-                    ProtoAcctState {
+                    protosol::protos::AcctState {
                         address: solana_rent::Rent::id().to_bytes().to_vec(),
                         owner: sysvar_id.clone(),
                         lamports: 1,
@@ -447,7 +447,7 @@ mod tests {
                 ],
                 cu_avail: 9850u64,
                 return_data: vec![],
-            })
+            }))
         );
     }
 }

@@ -1,13 +1,17 @@
 //! Instruction context (input).
 
 use {
-    super::{error::FixtureError, proto::InstrContext as ProtoInstrContext},
+    super::error::FixtureError,
+    protosol::protos::InstrContext as ProtoInstrContextInner,
     agave_feature_set::FeatureSet,
     solana_account::Account,
     solana_instruction::AccountMeta,
     solana_pubkey::Pubkey,
     solana_stable_layout::stable_instruction::StableInstruction,
 };
+
+// Wrapper type to work around orphan rules
+pub struct ProtoInstrContext(pub ProtoInstrContextInner);
 
 /// Instruction context fixture.
 pub struct InstrContext {
@@ -22,26 +26,26 @@ impl TryFrom<ProtoInstrContext> for InstrContext {
 
     fn try_from(value: ProtoInstrContext) -> Result<Self, Self::Error> {
         let program_id = Pubkey::new_from_array(
-            value
+            value.0
                 .program_id
                 .try_into()
                 .map_err(FixtureError::InvalidPubkeyBytes)?,
         );
 
-        let feature_set: FeatureSet = value
+        let feature_set: FeatureSet = value.0
             .epoch_context
             .as_ref()
             .and_then(|epoch_ctx| epoch_ctx.features.as_ref())
-            .map(|fs| fs.into())
+            .map(|fs| (&super::feature_set::ProtoFeatureSet(fs.clone())).into())
             .unwrap_or_default();
 
-        let accounts: Vec<(Pubkey, Account)> = value
+        let accounts: Vec<(Pubkey, Account)> = value.0
             .accounts
             .into_iter()
-            .map(|acct_state| acct_state.try_into())
+            .map(|acct_state| super::account_state::ProtoAccount(acct_state).try_into())
             .collect::<Result<Vec<_>, _>>()?;
 
-        let instruction_accounts = value
+        let instruction_accounts = value.0
             .instr_accounts
             .into_iter()
             .map(|acct| {
@@ -64,7 +68,7 @@ impl TryFrom<ProtoInstrContext> for InstrContext {
 
         let instruction = StableInstruction {
             accounts: instruction_accounts.into(),
-            data: value.data.into(),
+            data: value.0.data.into(),
             program_id,
         };
 
@@ -72,7 +76,7 @@ impl TryFrom<ProtoInstrContext> for InstrContext {
             feature_set,
             accounts,
             instruction,
-            cu_avail: value.cu_avail,
+            cu_avail: value.0.cu_avail,
         })
     }
 }

@@ -23,6 +23,7 @@ agave-precompiles = { workspace = true }
 agave-syscalls = { workspace = true }
 bincode = { workspace = true }
 clap = { version = "4.5.2", features = ["derive"] }
+protosol = { git = "https://github.com/firedancer-io/protosol", tag = "v1.0.0" }
 prost = { workspace = true }
 solana-account = { workspace = true }
 solana-builtins = { workspace = true }
@@ -47,9 +48,6 @@ solana-svm-timings = { workspace = true }
 solana-sysvar-id = { workspace = true }
 solana-transaction-context = { workspace = true }
 thiserror = { workspace = true }
-
-[build-dependencies]
-prost-build = { workspace = true }
 
 [lints]
 workspace = true

@@ -6,7 +6,7 @@ pub mod program_cache;
 pub mod sysvar_cache;
 
 use {
-    fixture::proto::InstrContext as ProtoInstrContext,
+    crate::fixture::instr_context::ProtoInstrContext,
     prost::Message,
     std::{env, ffi::c_int},
 };
@@ -32,14 +32,15 @@ pub unsafe extern "C" fn sol_compat_instr_execute_v1(
     in_sz: u64,
 ) -> c_int {
     let in_slice = std::slice::from_raw_parts(in_ptr, in_sz as usize);
-    let Ok(instr_context) = ProtoInstrContext::decode(in_slice) else {
+    let Ok(proto_instr_context) = protosol::protos::InstrContext::decode(in_slice) else {
         return 0;
     };
+    let instr_context = ProtoInstrContext(proto_instr_context);
     let Some(instr_effects) = instr::execute_instr_proto(instr_context) else {
         return 0;
     };
     let out_slice = std::slice::from_raw_parts_mut(out_ptr, (*out_psz) as usize);
-    let out_vec = instr_effects.encode_to_vec();
+    let out_vec = instr_effects.0.encode_to_vec();
     if out_vec.len() > out_slice.len() {
         return 0;
     }

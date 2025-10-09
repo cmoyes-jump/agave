@@ -1,9 +1,11 @@
 use {
     clap::Parser,
-    prost::Message,
     solana_svm_fuzz_harness::{
-        fixture::proto::InstrFixture as ProtoInstrFixture, instr::execute_instr_proto,
+        fixture::instr_context::ProtoInstrContext,
+        instr::execute_instr_proto,
     },
+    protosol::protos::InstrFixture as ProtoInstrFixture,
+    prost::Message,
     std::path::PathBuf,
 };
 
@@ -25,12 +27,14 @@ fn exec(input: &PathBuf) -> bool {
         println!("No fixture found.");
         return false;
     };
-    let Some(effects) = execute_instr_proto(context) else {
+    
+    let context_wrapper = ProtoInstrContext(context);
+    let Some(effects) = execute_instr_proto(context_wrapper) else {
         println!("FAIL: No instruction effects returned for input: {input:?}",);
         return false;
     };
 
-    let ok = effects == expected;
+    let ok = effects.0 == expected;
 
     if ok {
         println!("OK: {input:?}");

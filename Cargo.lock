@@ -5596,6 +5596,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "protosol"
+version = "1.0.0"
+source = "git+https://github.com/firedancer-io/protosol?tag=v1.0.0#11b97ad7f4c0268ec12f8d9508110fe66133a7fb"
+dependencies = [
+ "prost",
+ "prost-build",
+]
+
+[[package]]
 name = "qstring"
 version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11073,7 +11082,7 @@ dependencies = [
  "bincode",
  "clap 4.5.31",
  "prost",
- "prost-build",
+ "protosol",
  "solana-account",
  "solana-builtins",
  "solana-clock",
